@@ -229,4 +229,72 @@ class Contractors{
         return false;
         
     }
+
+    // search products
+    function search($keywords){
+    
+        // select all query
+        $query = "SELECT
+                    id, contractor_name, company_name, service_cat, about_him, areas_served, hst_number, company_address, company_address2, zip, primary_email, secondary_email, primary_phone, secondary_phone, prefered_method, created, ranking
+                FROM
+                    " . $this->table_name . "
+                WHERE
+                    contractor_name LIKE ? OR about_him LIKE ? OR company_name LIKE ?
+                ORDER BY
+                    created DESC";
+    
+        // prepare query statement
+        $stmt = $this->conn->prepare($query);
+    
+        // sanitize
+        $keywords=htmlspecialchars(strip_tags($keywords));
+        $keywords = "%{$keywords}%";
+    
+        // bind
+        $stmt->bindParam(1, $keywords);
+        $stmt->bindParam(2, $keywords);
+        $stmt->bindParam(3, $keywords);
+    
+        // execute query
+        $stmt->execute();
+    
+        return $stmt;
+    }
+
+    // read products with pagination
+    public function readPaging($from_record_num, $records_per_page){
+    
+        // select query
+        $query = "SELECT
+                    id, contractor_name, company_name, service_cat, about_him, areas_served, hst_number, company_address, company_address2, zip, primary_email, secondary_email, primary_phone, secondary_phone, prefered_method, created, ranking
+                FROM
+                    " . $this->table_name . "
+                ORDER BY created DESC
+                LIMIT ?, ?";
+    
+        // prepare query statement
+        $stmt = $this->conn->prepare( $query );
+    
+        // bind variable values
+        $stmt->bindParam(1, $from_record_num, PDO::PARAM_INT);
+        $stmt->bindParam(2, $records_per_page, PDO::PARAM_INT);
+    
+        // execute query
+        $stmt->execute();
+    
+        // return values from database
+        return $stmt;
+    }
+
+    // used for paging products
+    public function count(){
+        $query = "SELECT COUNT(*) as total_rows FROM " . $this->table_name . "";
+    
+        $stmt = $this->conn->prepare( $query );
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        return $row['total_rows'];
+    }
+
 }
